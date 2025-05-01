@@ -1,22 +1,16 @@
 pipeline {
-  agent any
-  stages {
-    stage('input') {
-      agent any
-      input {
-        message "What is your first name?"
-        ok "Submit"
-        parameters {
-          string(defaultValue: 'Dave', name: 'FIRST_NAME', trim: true) 
+    agent any
+    stages {
+        stage('Deploy') {
+            steps {
+                retry(3) {
+                    sh './flakey-deploy.sh'
+                }
+
+                timeout(time: 3, unit: 'MINUTES') {
+                    sh './health-check.sh'
+                }
+            }
         }
-      }
-      steps {
-        echo "Good Morning, $FIRST_NAME"
-        sh '''
-          hostname
-          sh 'cat /etc/os-release'
-        '''
-      }
     }
-  }
 }
