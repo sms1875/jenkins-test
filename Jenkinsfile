@@ -19,11 +19,8 @@ pipeline {
   }
   post {
     always {
-      // 테스트 결과 저장 (JUnit 형식 필요)
       junit 'build/reports/test-results.xml'
-
-      // 실행 결과물 저장 (필요 시)
-      archiveArtifacts artifacts: 'build/**/*.js', fingerprint: true
+      archiveArtifacts artifacts: 'build/reports/test-results.xml', fingerprint: true
     }
   }
 }
