@@ -3,10 +3,14 @@ pipeline {
     docker { image 'node:18-alpine' }
   }
   stages {
-    stage('Test') {
+    stage('Install') {
       steps {
         sh 'npm install'
-        // npm test 에서 실패를 잡아서 UNSTABLE 로 전환
+      }
+    }
+    stage('Test') {
+      steps {
+        // 테스트 실패 시 UNSTABLE 처리
         catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
           sh 'npm test'
         }
@@ -15,7 +19,11 @@ pipeline {
   }
   post {
     always {
+      // 테스트 결과 저장 (JUnit 형식 필요)
       junit 'build/reports/test-results.xml'
+
+      // 실행 결과물 저장 (필요 시)
+      archiveArtifacts artifacts: 'build/**/*.js', fingerprint: true
     }
   }
 }
