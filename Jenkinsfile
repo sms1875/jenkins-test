@@ -1,26 +1,28 @@
 pipeline {
-  agent {
-    docker { image 'node:18-alpine' }
-  }
-  stages {
-    stage('Install') {
-      steps {
-        sh 'npm install'
-      }
-    }
-    stage('Test') {
-      steps {
-        // 테스트 실패 시 UNSTABLE 처리
-        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-          sh 'npm test'
+    agent any
+    stages {
+        stage('No-op') {
+            steps {
+                sh 'ls'
+            }
         }
-      }
     }
-  }
-  post {
-    always {
-      junit 'build/reports/test-results.xml'
-      archiveArtifacts artifacts: 'build/reports/test-results.xml', fingerprint: true
+    post {
+        always {
+            echo 'One way or another, I have finished'
+            deleteDir() /* clean up our workspace */
+        }
+        success {
+            echo 'I succeeded!'
+        }
+        unstable {
+            echo 'I am unstable :/'
+        }
+        failure {
+            echo 'I failed :('
+        }
+        changed {
+            echo 'Things were different before...'
+        }
     }
-  }
 }
