@@ -1,22 +1,12 @@
 pipeline {
-  agent any
-  stages {
-    stage('stage 1') {
-      steps {
-        sh 'echo stage 1'
-      }
+    agent {
+        docker { image 'node:22.15.0-alpine3.21' }
     }
-    stage('stage 2') {
-      steps {
-        retry(5) {
-          sh './test-script.sh'
+    stages {
+        stage('Test') {
+            steps {
+                sh 'node --eval "console.log(process.arch,process.platform)"'
+            }
         }
-      }
     }
-    stage('stage 3') {
-      steps {
-        sh 'echo stage 3'
-      }
-    }
-  }
 }
