@@ -1,41 +1,27 @@
 pipeline {
-    agent any
-    options {
-        skipStagesAfterUnstable()
+  agent any
+  environment {
+    NODE_ENV = 'test'
+    API_URL = 'https://api.example.com'
+  }
+  stages {
+    stage('stage 1') {
+      steps {
+        sh 'echo "환경: $NODE_ENV"'
+      }
     }
-    stages {
-        stage('Build') {
-            steps {
-                sh 'npm install'
-                sh 'npm run build'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'npm test -- --watchAll=false'
-            }
-        }
-
-        stage('Deploy - Staging') {
-            steps {
-                echo 'Deploying to staging...'
-                sh './scripts/deploy.sh staging'
-                sh './scripts/smoke-test.sh'
-            }
-        }
-
-        stage('Sanity check') {
-            steps {
-                input "Staging 환경이 정상인가요? -> 프로덕션 배포 승인"
-            }
-        }
-
-        stage('Deploy - Production') {
-            steps {
-                echo 'Deploying to production...'
-                sh './scripts/deploy.sh production'
-            }
-        }
+    stage('stage 2') {
+      environment {
+        NODE_ENV = 'production'
+      }
+      steps {
+        sh './test-script.sh'
+      }
     }
+    stage('stage 3') {
+      steps {
+        sh 'echo "API 호출: $API_URL"'
+      }
+    }
+  }
 }
