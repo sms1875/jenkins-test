@@ -1,22 +1,14 @@
 pipeline {
-  agent none
-  stages {
-    stage('input') {
-      agent any
-      input {
-        message "What is your first name?"
-        ok "Submit"
-        parameters {
-          string(defaultValue: 'Dave', name: 'FIRST_NAME', trim: true) 
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                sh 'echo "Hello World"'
+                sh '''
+                    echo "Multiline shell steps works too"
+                    ls -lah
+                '''
+            }
         }
-      }
-      steps {
-        echo "Good Morning, $FIRST_NAME"
-        sh '''
-          hostname
-          cat /etc/redhat-release
-        '''
-      }
     }
-  }
 }
