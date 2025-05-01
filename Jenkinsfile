@@ -1,23 +1,22 @@
 pipeline {
-    agent any
-
-    stages {
-        stage('Install') {
-            steps {
-                sh 'npm install'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'npm test'
-            }
-        }
+  agent {
+    docker {
+      image 'node:18-alpine'
     }
+  }
 
-    post {
-        always {
-            junit 'build/reports/test-results.xml'
-            archiveArtifacts artifacts: 'build/reports/test-results.xml', fingerprint: true
-        }
+  stages {
+    stage('Test') {
+      steps {
+        sh 'npm install'
+        sh 'npm test'
+      }
     }
+  }
+
+  post {
+    always {
+      junit 'build/reports/test-results.xml'
+    }
+  }
 }
