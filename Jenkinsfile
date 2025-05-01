@@ -1,33 +1,41 @@
 pipeline {
     agent any
+    options {
+        skipStagesAfterUnstable()
+    }
     stages {
-        stage('No-op') {
+        stage('Build') {
             steps {
-                sh 'ls'
+                sh 'npm install'
+                sh 'npm run build'
             }
         }
-    }
-    post {
-        always {
-            echo 'One way or another, I have finished'
-            deleteDir() /* clean up our workspace */
+
+        stage('Test') {
+            steps {
+                sh 'npm test -- --watchAll=false'
+            }
         }
-        success {
-            sh """
-            curl -X POST -H 'Content-Type: application/json' \
-            -d '{
-                "text": "✅ 파이프라인 ${env.JOB_NAME} #${env.BUILD_NUMBER} 이(가) 성공적으로 완료되었습니다."
-            }' https://meeting.ssafy.com/hooks/e4uu4j8sc3yz3fj8yqfqhazq5a
-            """
+
+        stage('Deploy - Staging') {
+            steps {
+                echo 'Deploying to staging...'
+                sh './scripts/deploy.sh staging'
+                sh './scripts/smoke-test.sh'
+            }
         }
-        unstable {
-            echo 'I am unstable :/'
+
+        stage('Sanity check') {
+            steps {
+                input "Staging 환경이 정상인가요? -> 프로덕션 배포 승인"
+            }
         }
-        failure {
-            echo 'I failed :('
-        }
-        changed {
-            echo 'Things were different before...'
+
+        stage('Deploy - Production') {
+            steps {
+                echo 'Deploying to production...'
+                sh './scripts/deploy.sh production'
+            }
         }
     }
 }
