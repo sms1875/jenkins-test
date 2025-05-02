@@ -20,9 +20,18 @@ pipeline {
                 sh 'docker run --rm $IMAGE_NAME:$IMAGE_TAG sh -c "npm test || exit 0"'
             }
         }
-        stage('Deploy') {
+        stage('Deploy - Staging') {
             steps {
-                echo '✅ 배포'
+                echo '🚀 스테이징 배포'
+                sh '''
+                   docker rm -f vite-staging || true
+                   docker run -d --name vite-staging -p 5173:5173 $IMAGE_NAME:$IMAGE_TAG
+                '''
+            }
+        }
+        stage('Deploy - Production') {
+            steps {
+                echo '🎉 프로덕션 배포'
                 sh '''
                    docker rm -f vite-prod || true
                    docker run -d --name vite-prod -p 8000:80 $IMAGE_NAME:$IMAGE_TAG
