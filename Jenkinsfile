@@ -29,6 +29,11 @@ pipeline {
                 '''
             }
         }
+        stage('Sanity Check') {
+            steps {
+                input message: "스테이징 배포 확인 후 Continue", ok: "Continue"
+            }
+        }
         stage('Deploy - Production') {
             steps {
                 echo '🎉 프로덕션 배포'
