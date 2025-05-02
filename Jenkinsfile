@@ -34,7 +34,7 @@ pipeline {
             steps {
                 sh """
                 docker rm -f vite-prod || true
-                docker run -d --name vite-prod -p 8080:80 ${IMAGE_NAME}:${IMAGE_TAG}
+                docker run -d --name vite-prod -p 8000:80 ${IMAGE_NAME}:${IMAGE_TAG}
                 """
             }
         }
