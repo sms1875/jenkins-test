@@ -1,16 +1,24 @@
-# 1. Build 단계
-FROM node:20 AS build
+# base image
+FROM node:20
 
+# app directory
 WORKDIR /app
-COPY . .
+
+# install deps
+COPY package*.json ./
 RUN npm install
+
+# copy source
+COPY . .
+
+# build app
 RUN npm run build
 
-# 2. Serve 단계
-FROM nginx:alpine
+# install lightweight HTTP server for static files
+RUN npm install -g serve
 
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# optional: custom nginx config
+# expose port
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+
+# start app
+CMD ["serve", "-s", "dist", "-l", "80"]

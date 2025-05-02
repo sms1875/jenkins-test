@@ -2,54 +2,47 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'my-app'
+        IMAGE_NAME = "my-vite-app"
+        IMAGE_TAG = "latest"
     }
 
     stages {
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                sh 'npm install'
-                sh 'npm run build'
+                script {
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
             }
         }
 
-        stage('Docker Build - Staging') {
+        stage('Run Container (Staging)') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:staging .'
-            }
-        }
-
-        stage('Deploy - Staging') {
-            steps {
-                sh './deploy staging'
+                sh """
+                docker rm -f vite-staging || true
+                docker run -d --name vite-staging -p 5173:5173 ${IMAGE_NAME}:${IMAGE_TAG}
+                """
             }
         }
 
         stage('Sanity Check') {
             steps {
-                input message: "Staging 배포 완료. Production 배포를 진행할까요?"
+                input "✅ 확인되셨으면 'Continue'를 눌러 주세요."
             }
         }
 
-        stage('Docker Build - Production') {
+        stage('Run Container (Production)') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:production .'
-            }
-        }
-
-        stage('Deploy - Production') {
-            steps {
-                sh './deploy production'
+                sh """
+                docker rm -f vite-prod || true
+                docker run -d --name vite-prod -p 8080:80 ${IMAGE_NAME}:${IMAGE_TAG}
+                """
             }
         }
     }
 
     post {
-        success {
-            echo "✅ 배포 완료"
-        }
-        failure {
-            echo "❌ 실패"
+        always {
+            echo "✅ 파이프라인 종료됨"
         }
     }
 }
