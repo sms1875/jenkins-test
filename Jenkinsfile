@@ -1,27 +1,55 @@
 pipeline {
-  agent any
-  environment {
-    NODE_ENV = 'test'
-    API_URL = 'https://api.example.com'
-  }
-  stages {
-    stage('stage 1') {
-      steps {
-        sh 'echo "환경: $NODE_ENV"'
-      }
+    agent any
+
+    environment {
+        IMAGE_NAME = 'my-app'
     }
-    stage('stage 2') {
-      environment {
-        NODE_ENV = 'production'
-      }
-      steps {
-        sh './test-script.sh'
-      }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh 'npm install'
+                sh 'npm run build'
+            }
+        }
+
+        stage('Docker Build - Staging') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME}:staging .'
+            }
+        }
+
+        stage('Deploy - Staging') {
+            steps {
+                sh './deploy staging'
+            }
+        }
+
+        stage('Sanity Check') {
+            steps {
+                input message: "Staging 배포 완료. Production 배포를 진행할까요?"
+            }
+        }
+
+        stage('Docker Build - Production') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME}:production .'
+            }
+        }
+
+        stage('Deploy - Production') {
+            steps {
+                sh './deploy production'
+            }
+        }
     }
-    stage('stage 3') {
-      steps {
-        sh 'echo "API 호출: $API_URL"'
-      }
+
+    post {
+        success {
+            echo "✅ 배포 완료"
+        }
+        failure {
+            echo "❌ 실패"
+        }
     }
-  }
 }
